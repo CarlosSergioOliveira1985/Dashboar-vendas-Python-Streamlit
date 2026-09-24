@@ -36,20 +36,24 @@ df_final.to_csv(
     sep=";", decimal=",", index=False, encoding="utf-8"
 )
 
-df_final
-
 st.set_page_config(layout="wide")
 
-df_final['DATA']
-
 df_final['DATA'] = pd.to_datetime(df_final['DATA'])
-
-df_final["DATA"]
 
 df_final = df_final.sort_values(by="DATA")
 
 df_final["Month"] = df_final["DATA"].apply(lambda x: str(x.year) + "-" + str(x.month))
 
-df_final
+Month = st.sidebar.selectbox('Mês',df_final["Month"].unique())
 
-Month = st.sidebar._selectbox('Mês',df_final["Month"].unique())
+df_filtred = df_final[df_final["Month"] == Month ]
+
+
+col1, col2 = st.columns(2)
+col3, col4, col5 = st.columns(3)
+
+fig_date = px.bar(df_filtred, x="DATA", y="TOTAL_VENDA", color="CAIXA_VENDEDOR", title="FATURAMENTO POR DIA")
+col1.plotly_chart(fig_date)
+
+can_date = px.bar(df_filtred, x="DATA", y="VALOR_CANCELADO", color="CAIXA_VENDEDOR", title="VALOR CANCELADO POR DIA")
+col2.plotly_chart(can_date)
