@@ -53,7 +53,19 @@ col1, col2 = st.columns(2)
 col3, col4, col5 = st.columns(3)
 
 fig_date = px.bar(df_filtred, x="DATA", y="TOTAL_VENDA", color="CAIXA_VENDEDOR", title="FATURAMENTO POR DIA")
-col1.plotly_chart(fig_date)
+col1.plotly_chart(fig_date, use_container_width=True)
 
-can_date = px.bar(df_filtred, x="DATA", y="VALOR_CANCELADO", color="CAIXA_VENDEDOR", title="VALOR CANCELADO POR DIA")
-col2.plotly_chart(can_date)
+fig_can = px.bar(df_filtred, x="DATA", y="VALOR_CANCELADO", color="CAIXA_VENDEDOR", title="VALOR CANCELADO POR DIA")
+col2.plotly_chart(fig_can, use_container_width=True)
+
+vendedor_total = df_filtred.groupby('CAIXA_VENDEDOR')[['TOTAL_VENDA']].sum().reset_index()
+fig_vendedor = px.bar(df_filtred, x="CAIXA_VENDEDOR", y="TOTAL_VENDA", color="CAIXA_VENDEDOR", title="FATURAMENTO POR VENDEDOR")
+col3.plotly_chart(fig_vendedor, use_container_width=True )
+
+
+fig_pagamento = px.pie(df_filtred, values="TOTAL_VENDA", names="COD_FORMA_PGTO", title="TIPO DE PAGAMENTO")
+col4.plotly_chart(fig_pagamento, use_container_width=True)
+
+media_vendedor = df_final.groupby('CAIXA_VENDEDOR')[['TOTAL_VENDA']].mean().reset_index()
+fig_media_vendedor = px.bar(df_final, x="CAIXA_VENDEDOR", y="TOTAL_VENDA", color="CAIXA_VENDEDOR", title="MÉDIA DE VENDAS VENDEDOR")
+col5.plotly_chart(fig_media_vendedor, use_container_width=True)
