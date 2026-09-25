@@ -59,13 +59,48 @@ fig_can = px.bar(df_filtred, x="DATA", y="VALOR_CANCELADO", color="CAIXA_VENDEDO
 col2.plotly_chart(fig_can, use_container_width=True)
 
 vendedor_total = df_filtred.groupby('CAIXA_VENDEDOR')[['TOTAL_VENDA']].sum().reset_index()
-fig_vendedor = px.bar(df_filtred, x="CAIXA_VENDEDOR", y="TOTAL_VENDA", color="CAIXA_VENDEDOR", title="FATURAMENTO POR VENDEDOR")
+fig_vendedor = px.bar(vendedor_total, x="CAIXA_VENDEDOR", y="TOTAL_VENDA", color="CAIXA_VENDEDOR", title="FATURAMENTO POR VENDEDOR")
 col3.plotly_chart(fig_vendedor, use_container_width=True )
 
 
 fig_pagamento = px.pie(df_filtred, values="TOTAL_VENDA", names="COD_FORMA_PGTO", title="TIPO DE PAGAMENTO")
 col4.plotly_chart(fig_pagamento, use_container_width=True)
 
+# Média de vendas por vendedor
 media_vendedor = df_final.groupby('CAIXA_VENDEDOR')[['TOTAL_VENDA']].mean().reset_index()
-fig_media_vendedor = px.bar(df_final, x="CAIXA_VENDEDOR", y="TOTAL_VENDA", color="CAIXA_VENDEDOR", title="MÉDIA DE VENDAS VENDEDOR")
+
+# Ordena do maior para o menor
+media_vendedor = media_vendedor.sort_values(by="TOTAL_VENDA", ascending=False)
+
+# Cria o gráfico
+fig_media_vendedor = px.bar(
+    media_vendedor,
+    x="CAIXA_VENDEDOR",
+    y="TOTAL_VENDA",
+    color="TOTAL_VENDA",  # intensidade da cor proporcional ao valor
+    color_continuous_scale="Blues",
+    title="MÉDIA DE VENDAS POR VENDEDOR"
+)
+
+# Adiciona rótulos nas barras
+fig_media_vendedor.update_traces(texttemplate='%{y:,.0f}', textposition='outside')
+
+# Ajusta layout
+fig_media_vendedor.update_layout(
+    yaxis_tickformat=",.0f",   # separador de milhar
+    xaxis_title="Vendedor",
+    yaxis_title="Média de Vendas (R$)",
+    xaxis_tickangle=-45,       # gira rótulos do eixo X
+    showlegend=False
+)
+
+# Linha de referência da média geral
+fig_media_vendedor.add_hline(
+    y=media_vendedor["TOTAL_VENDA"].mean(),
+    line_dash="dash",
+    line_color="red",
+    annotation_text="Média Geral"
+)
+
+# Exibe no Streamlit
 col5.plotly_chart(fig_media_vendedor, use_container_width=True)
