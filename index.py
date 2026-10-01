@@ -1,0 +1,254 @@
+from dash import html, dcc, Input, Output, State
+import dash_bootstrap_components as dbc
+import plotly.express as px
+import plotly.graph_objects as go
+import pandas as pd
+
+from dash_bootstrap_templates import ThemeSwitchAIO
+import dash
+
+FONT_AWESOME = ["https://use.fontwesome.com/releases/v5.10.2/css/all.css"]
+app = dash.Dash(__name__, external_stylesheets=FONT_AWESOME)
+app.scripts.config.serve_locally = True
+server =  app.server
+
+# ========== Styles ============ #
+tab_card = {'height': '100%'}
+
+main_config = {
+    "hovermode": "x unified",
+    "legend": {"yanchor":"top", 
+                "y":0.9, 
+                "xanchor":"left",
+                "x":0.1,
+                "title": {"text": None},
+                "font" :{"color":"white"},
+                "bgcolor": "rgba(0,0,0,0.5)"},
+    "margin": {"l":10, "r":10, "t":10, "b":10}
+}
+
+config_graph={"displayModeBar": False, "showTips": False}
+
+template_theme1 = "flatly"
+template_theme2 = "darkly"
+url_theme1 = dbc.themes.FLATLY
+url_theme2 = dbc.themes.DARKLY
+
+df = pd.read_csv(r'C:\Users\Carlos\Desktop\Dashboard python\Dados\dataset_vendas.csv')
+df_cru = df.copy()
+
+meses_map = {
+    'Jan': int(1),
+    'Fev': int(2),
+    'Mar': int(3),
+    'Abr': int(4),
+    'Mai': int(5),
+    'Jun': int(6),
+    'Jul': int(7),
+    'Ago': int(8),
+    'Set': int(9),
+    'Out': int(10),
+    'Nov': int(11),
+    'Dez': int(12)
+}
+
+df['Mês'] = df['Mês'].map(meses_map)
+
+df ['Valor Pago'] = df ['Valor Pago'].str.lstrip('R$ ').astype(int)
+
+status_map = {
+    'Pago': int(1),
+    'Não pago': int(0),
+}
+
+df['Status de Pagamento'] = df['Status de Pagamento'].map(status_map)
+
+
+# opções dos filtros 
+
+options_month = [{'label': 'Ano todo', 'value':0}]
+for i, j in zip(df_cru['Mês'].unique(),df['Mês'].unique()):
+    options_month.append({'label':i, 'value':j})
+options_month = sorted(options_month, key=lambda x: x['value'])
+
+options_team = [{'label': 'Todas Equipes', 'value':0}]
+for i in zip(df['Equipe'].unique()):
+    options_team.append({'label':i, 'value':i})
+
+# =========  Layout  =========== #
+
+
+app.layout = dbc.Container(children=[
+
+    # Armazenamento de dataset
+    # dcc.Store(id='dataset', data=df_store),
+
+    # Layout
+    # Row 1
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    dbc.Row([
+                        dbc.Col([  
+                            html.Legend("Sales Analytics")
+                        ], sm=8),
+                        dbc.Col([        
+                            html.I(className='fa fa-balance-scale', style={'font-size': '300%'})
+                        ], sm=4, align="center")
+                    ]),
+                    dbc.Row([
+                        dbc.Col([
+                            ThemeSwitchAIO(aio_id="theme", themes=[url_theme1, url_theme2]),
+                            html.Legend("Carlos Cientista de Dados")
+                        ])
+                    ], style={'margin-top': '10px'}),
+                    dbc.Row([
+                        dbc.Button("Visite o Site", href="https://www.linkedin.com/in/carlos-oliveira-1b35b7123/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BgyvLE5vuRCeF9dgM%2BDTwMg%3D%3D", target="_blank")
+                    ], style={'margin-top': '10px'})
+                ])
+            ], style=tab_card)
+        ], sm=4, lg=2),
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    dbc.Row(
+                        dbc.Col(
+                            html.Legend('Top Consultores por Equipe')
+                        )
+                    ),
+                    dbc.Row([
+                        dbc.Col([
+                            dcc.Graph(id='graph1', className='dbc', config=config_graph)
+                        ], sm=12, md=7),
+                        dbc.Col([
+                            dcc.Graph(id='graph2', className='dbc', config=config_graph)
+                        ], sm=12, lg=5)
+                    ])
+                ])
+            ], style=tab_card)
+        ], sm=12, lg=7),
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    dbc.Row(
+                        dbc.Col([
+                            html.H5('Escolha o Mês'),
+                            dbc.RadioItems(
+                                id="radio-month",
+                                options=options_month,
+                                value=0,
+                                inline=True,
+                                labelCheckedClassName="text-success",
+                                inputCheckedClassName="border border-success bg-success",
+                            ),
+                            html.Div(id='month-select', style={'text-align': 'center', 'margin-top': '30px'}, className='dbc')
+                        ])
+                    )
+                ])
+            ], style=tab_card)
+        ], sm=12, lg=3)
+    ], className='g-2 my-auto', style={'margin-top': '7px'}),
+
+    # Row 2
+    dbc.Row([
+        dbc.Col([
+            dbc.Row([
+                dbc.Col([
+                    dbc.Card([
+                        dbc.CardBody([
+                            dcc.Graph(id='graph3', className='dbc', config=config_graph)
+                        ])
+                    ], style=tab_card)
+                ])
+            ]),
+            dbc.Row([
+                dbc.Col([
+                    dbc.Card([
+                        dbc.CardBody([
+                            dcc.Graph(id='graph4', className='dbc', config=config_graph)
+                        ])
+                    ], style=tab_card)
+                ])
+            ], className='g-2 my-auto', style={'margin-top': '7px'})
+        ], sm=12, lg=5),
+        dbc.Col([
+            dbc.Row([
+                dbc.Col([
+                    dbc.Card([
+                        dbc.CardBody([
+                            dcc.Graph(id='graph5', className='dbc', config=config_graph)    
+                        ])
+                    ], style=tab_card)
+                ], sm=6),
+                dbc.Col([
+                    dbc.Card([
+                        dbc.CardBody([
+                            dcc.Graph(id='graph6', className='dbc', config=config_graph)    
+                        ])
+                    ], style=tab_card)
+                ], sm=6)
+            ], className='g-2'),
+            dbc.Row([
+                dbc.Col([
+                    dbc.Card([
+                        dcc.Graph(id='graph7', className='dbc', config=config_graph)
+                    ], style=tab_card)
+                ])
+            ], className='g-2 my-auto', style={'margin-top': '7px'})
+        ], sm=12, lg=4),
+        dbc.Col([
+            dbc.Card([
+                dcc.Graph(id='graph8', className='dbc', config=config_graph)
+            ], style=tab_card)
+        ], sm=12, lg=3)
+    ], className='g-2 my-auto', style={'margin-top': '7px'}),
+    
+    # Row 3
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H4('Distribuição de Propaganda'),
+                    dcc.Graph(id='graph9', className='dbc', config=config_graph)
+                ])
+            ], style=tab_card)
+        ], sm=12, lg=2),
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H4("Valores de Propaganda convertidos por mês"),
+                    dcc.Graph(id='graph10', className='dbc', config=config_graph)
+                ])
+            ], style=tab_card)
+        ], sm=12, lg=5),
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    dcc.Graph(id='graph11', className='dbc', config=config_graph)
+                ])
+            ], style=tab_card)
+        ], sm=12, lg=3),
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H5('Escolha a Equipe'),
+                    dbc.RadioItems(
+                        id="radio-team",
+                        options=options_team,
+                        value=0,
+                        inline=True,
+                        labelCheckedClassName="text-warning",
+                        inputCheckedClassName="border border-warning bg-warning",
+                    ),
+                    html.Div(id='team-select', style={'text-align': 'center', 'margin-top': '30px'}, className='dbc')
+                ])
+            ], style=tab_card)
+        ], sm=12, lg=2),
+    ], className='g-2 my-auto', style={'margin-top': '7px'})
+], fluid=True, style={'height': '100vh'})
+
+
+
+if __name__ == '__main__':
+    app.run(debug=True, port=8051)
