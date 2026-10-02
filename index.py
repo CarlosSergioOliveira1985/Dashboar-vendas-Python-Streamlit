@@ -34,6 +34,7 @@ template_theme2 = "darkly"
 url_theme1 = dbc.themes.FLATLY
 url_theme2 = dbc.themes.DARKLY
 
+
 df = pd.read_csv(r'C:\Users\Carlos\Desktop\Dashboard python\Dados\dataset_vendas.csv')
 df_cru = df.copy()
 
@@ -74,6 +75,20 @@ options_month = sorted(options_month, key=lambda x: x['value'])
 options_team = [{'label': 'Todas Equipes', 'value':0}]
 for i in zip(df['Equipe'].unique()):
     options_team.append({'label':i, 'value':i})
+
+# =========  Função dos filtros  =========== #
+
+def  month_filter(month):
+    if month == 0:
+        mask = df['Mês'].isin(df['Mês'].unique())
+    else:
+        mask = df['Mês'].isin([month])
+    return mask
+
+def convert_to_text(month):
+     lista1 = ['Ano Todo','Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+               'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro',]
+     return lista1[month]
 
 # =========  Layout  =========== #
 
@@ -150,6 +165,7 @@ app.layout = dbc.Container(children=[
         ], sm=12, lg=3)
     ], className='g-2 my-auto', style={'margin-top': '7px'}),
 
+
     # Row 2
     dbc.Row([
         dbc.Col([
@@ -203,8 +219,9 @@ app.layout = dbc.Container(children=[
             ], style=tab_card)
         ], sm=12, lg=3)
     ], className='g-2 my-auto', style={'margin-top': '7px'}),
-    
-    # Row 3
+
+        # Row 3
+
     dbc.Row([
         dbc.Col([
             dbc.Card([
@@ -246,9 +263,38 @@ app.layout = dbc.Container(children=[
             ], style=tab_card)
         ], sm=12, lg=2),
     ], className='g-2 my-auto', style={'margin-top': '7px'})
+
 ], fluid=True, style={'height': '100vh'})
 
+# ======== Callbacks ========== #
+# Graph 1 and 2
 
+@app.callback(
+    Output('graph1', 'figure'),
+    Output('graph2', 'figure'),
+    Output('month-select', 'children'),
+    Input('radio-month', 'value'),
+    Input(ThemeSwitchAIO.ids.switch("theme"), "value")
+)
+
+def graph1(month, toggle):
+    template = template_theme1 if toggle else template_theme2
+
+    mask = month_filter(month)
+    df_1 = df.loc[mask]
+
+    df_1 = df_1.groupby(['Equipe', 'Consultor'])['Valor Pago'].sum()
+    df_1 = df_1.sort_values(ascending=False)
+    df_1 = df_1.groupby('Equipe').head(1).reset_index()
+
+    fig2 = go.Figure(go.Pie(labels=df_1['Consultor'] + ' - ' + df_1['Equipe'], values=df_1['Valor Pago'], hole=.6))
+    fig1 = go.Figure(go.Bar(x=df_1['Consultor'], y=df_1['Valor Pago'], textposition='auto', text=df_1['Valor Pago']))
+    fig1.update_layout(main_config, height=200, template=template)
+    fig2.update_layout(main_config, height=200, template=template, showlegend=False)
+
+    select = html.H1(convert_to_text(month))
+
+    return fig1, fig2, select
 
 if __name__ == '__main__':
     app.run(debug=True, port=8051)
