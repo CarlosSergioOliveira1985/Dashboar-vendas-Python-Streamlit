@@ -22,3 +22,6 @@ O objetivo é fornecer uma visão clara e visual dos principais indicadores come
   - `pandas` para manipulação de dados
   - `matplotlib` e `seaborn` para visualização
   - `jupyter notebook` (opcional) para exploração interativa
+ 
+  ![Logo do Projeto](Imagem_dos_Graficos.png)
+
