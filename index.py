@@ -73,7 +73,7 @@ for i, j in zip(df_cru['Mês'].unique(),df['Mês'].unique()):
 options_month = sorted(options_month, key=lambda x: x['value'])
 
 options_team = [{'label': 'Todas Equipes', 'value':0}]
-for i in zip(df['Equipe'].unique()):
+for i in (df['Equipe'].unique()):
     options_team.append({'label':i, 'value':i})
 
 # =========  Função dos filtros  =========== #
@@ -454,6 +454,77 @@ def graph8(month, toggle):
 
     fig8.update_layout(main_config, height=360, template=template)
     return fig8
+
+# Graph 9
+@app.callback(
+    Output('graph9', 'figure'),
+    Input('radio-month', 'value'),
+    Input('radio-team', 'value'),
+    Input(ThemeSwitchAIO.ids.switch("theme"), "value")
+)
+def graph9(month, team, toggle):
+    template = template_theme1 if toggle else template_theme2
+
+    mask = month_filter(month)
+    df_9 = df.loc[mask]
+
+    mask = team_filter(team)
+    df_9 = df_9.loc[mask]
+
+    df_9 = df_9.groupby('Meio de Propaganda')['Valor Pago'].sum().reset_index()
+
+    fig9 = go.Figure()
+    fig9.add_trace(go.Pie(labels=df_9['Meio de Propaganda'], values=df_9['Valor Pago'], hole=.7))
+
+    fig9.update_layout(main_config, height=150, template=template, showlegend=False)
+    return fig9
+
+# Graph 10
+@app.callback(
+    Output('graph10', 'figure'),
+    Input('radio-team', 'value'),
+    Input(ThemeSwitchAIO.ids.switch("theme"), "value")
+)
+def graph10(team, toggle):
+    template = template_theme1 if toggle else template_theme2
+    
+    mask = team_filter(team)
+    df_10 = df.loc[mask]
+
+    df10 = df_10.groupby(['Meio de Propaganda', 'Mês'])['Valor Pago'].sum().reset_index()
+    fig10 = px.line(df10, y="Valor Pago", x="Mês", color="Meio de Propaganda")
+
+    fig10.update_layout(main_config, height=200, template=template, showlegend=False)
+    return fig10
+
+# Graph 11
+@app.callback(
+    Output('graph11', 'figure'),
+    Output('team-select', 'children'),
+    Input('radio-month', 'value'),
+    Input('radio-team', 'value'),
+    Input(ThemeSwitchAIO.ids.switch("theme"), "value")
+)
+def graph11(month, team, toggle):
+    template = template_theme1 if toggle else template_theme2
+
+    mask = month_filter(month)
+    df_11 = df.loc[mask]
+
+    mask = team_filter(team)
+    df_11 = df_11.loc[mask]
+
+    fig11 = go.Figure()
+    fig11.add_trace(go.Indicator(mode='number',
+        title = {"text": f"<span style='font-size:150%'>Valor Total</span><br><span style='font-size:70%'>Em Reais</span><br>"},
+        value = df_11['Valor Pago'].sum(),
+        number = {'prefix': "R$"}
+    ))
+
+    fig11.update_layout(main_config, height=300, template=template)
+    select = html.H1("Todas Equipes") if team == 0 else html.H1(team)
+
+    return fig11, select
 
 
 if __name__ == '__main__':
