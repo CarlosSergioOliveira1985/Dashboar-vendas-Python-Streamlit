@@ -23,5 +23,7 @@ O objetivo é fornecer uma visão clara e visual dos principais indicadores come
   - `matplotlib` e `seaborn` para visualização
   - `jupyter notebook` (opcional) para exploração interativa
  
-  ![Logo do Projeto](Imagem_dos_Graficos.png)
+  ![Logo do Projeto](DashboardPython.png)
+
+  
 
